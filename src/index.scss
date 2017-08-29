@@ -1,0 +1,13 @@
+// 定位高亮
+.drop-on {
+    opacity: 0.6;
+    background-color: rgba(255, 255, 255, 0.5);
+    outline: 1px dashed rgba(255, 255, 255, 0.5);
+}
+
+// 已定位元素被拖拽高亮
+.loc-drag {
+    opacity: 0.6;
+    background-color: rgba(255, 220, 107, 0.5);
+    outline: 1px dashed rgba(255, 220, 107, 0.5);
+}
