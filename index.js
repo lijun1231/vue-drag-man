@@ -4,8 +4,36 @@ var _toConsumableArray2 = require('babel-runtime/helpers/toConsumableArray');
 
 var _toConsumableArray3 = _interopRequireDefault(_toConsumableArray2);
 
+var _stringify = require('babel-runtime/core-js/json/stringify');
+
+var _stringify2 = _interopRequireDefault(_stringify);
+
+var _typeof2 = require('babel-runtime/helpers/typeof');
+
+var _typeof3 = _interopRequireDefault(_typeof2);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var util = {
+    cloneObj: function cloneObj(obj) {
+        if (!obj) return obj;
+        var str = void 0;
+        var newobj = obj.constructor === Array ? [] : {};
+        if ((typeof obj === 'undefined' ? 'undefined' : (0, _typeof3.default)(obj)) !== 'object') {
+            newobj = null;
+        } else if (window.JSON) {
+            str = (0, _stringify2.default)(obj);
+            newobj = JSON.parse(str);
+        } else {
+            for (var i in obj) {
+                if (obj.hasOwnProperty(i)) {
+                    newobj[i] = (0, _typeof3.default)(obj[i]) === 'object' ? this.cloneObj(obj[i]) : obj[i];
+                }
+            }
+        }
+        return newobj;
+    }
+};
 var evList = {
     data: {
         transferingData: null,
@@ -16,8 +44,16 @@ var evList = {
     onDragStart: function onDragStart(ev, el, bindings) {
         this.data.transferingData = {
             type: 'add',
-            data: bindings.value.data
+            data: util.cloneObj(bindings.value.data)
         };
+
+        {
+            var f = bindings.value.beforeDrag,
+                d = this.data.transferingData;
+            if (f) {
+                f(d);
+            }
+        }
     },
     onDragOver: function onDragOver(ev) {
         ev.preventDefault();
@@ -51,11 +87,17 @@ var evList = {
             this.data.locDragEl.classList.remove('loc-drag');
         }
         var transferingData = this.data.transferingData;
-        var locatingIndex = this.data.locatingIndex;
 
+        {
+            var f = bindings.value.afterDropped,
+                d = transferingData;
+            if (f) {
+                f(d);
+            }
+        }
+        var locatingIndex = this.data.locatingIndex;
         var pool = bindings.value.pool;
         var locIdx = void 0;
-
         if (locatingIndex >= 0) {
             locIdx = locatingIndex;
         } else {

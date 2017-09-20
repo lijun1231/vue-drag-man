@@ -1,4 +1,24 @@
 /*eslint-disable*/
+const util = {
+    cloneObj (obj) {
+        if (!obj) return obj;
+        let str;
+        let newobj = obj.constructor === Array ? [] : {};
+        if (typeof obj !== 'object') {
+            newobj = null;
+        } else if (window.JSON) {
+            str = JSON.stringify(obj); // 系列化对象
+            newobj = JSON.parse(str); // 还原
+        } else {
+            for (var i in obj) {
+                if (obj.hasOwnProperty(i)) {
+                    newobj[i] = typeof obj[i] === 'object' ? this.cloneObj(obj[i]) : obj[i];
+                }
+            }
+        }
+        return newobj;
+    }
+};
 const evList = {
     // 拖拽数据记录
     data: {
@@ -12,8 +32,16 @@ const evList = {
     onDragStart (ev, el, bindings) {
         this.data.transferingData = {
             type: 'add',
-            data: bindings.value.data
+            data: util.cloneObj(bindings.value.data)
         };
+
+        // beforeDrag 钩子
+        {
+            let f = bindings.value.beforeDrag, d = this.data.transferingData;
+            if (f) {
+                f(d);
+            }
+        }
     },
     onDragOver (ev) {
         ev.preventDefault();
@@ -57,10 +85,17 @@ const evList = {
             this.data.locDragEl.classList.remove('loc-drag');
         }
         let transferingData = this.data.transferingData;
-        let locatingIndex = this.data.locatingIndex;
 
-        let pool = bindings.value.pool;
-        let locIdx;
+        // afterDropped 钩子
+        {
+            let f = bindings.value.afterDropped, d = transferingData;
+            if (f) {
+                f(d);
+            }
+        }
+        let locatingIndex = this.data.locatingIndex; // 定位位置
+        let pool = bindings.value.pool; // 数据池，用于接纳新数据项的数组
+        let locIdx; // 最终要放置的位置
 
         // 判断是否需要定位
         if (locatingIndex >= 0) {
